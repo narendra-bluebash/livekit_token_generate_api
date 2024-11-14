@@ -1,17 +1,13 @@
-FROM python:3.10
-USER root
-WORKDIR /app
-RUN rm -f /etc/apt/apt.conf.d/docker-clean \
-    && echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
+FROM python:3.12
 
-RUN curl -sSL https://install.python-poetry.org | python3 -
-ENV POETRY_HOME="/root/.local"
-ENV PATH="$POETRY_HOME/bin:$PATH"
-COPY pyproject.toml poetry.lock* /app/
+WORKDIR /code
 
-RUN poetry config virtualenvs.create false && poetry install --no-interaction --no-ansi
+COPY ./requirements.txt /code/requirements.txt
 
-COPY app.py .
-COPY .env .
+RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
-CMD ["python3", "app.py"]
+COPY . .
+
+EXPOSE 7860
+
+CMD ["shiny", "run", "app.py", "--host", "0.0.0.0", "--port", "7860"]
